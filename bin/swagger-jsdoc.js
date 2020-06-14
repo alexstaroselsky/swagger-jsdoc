@@ -22,13 +22,19 @@ let output = 'swagger.json';
  * @param {array} apis - List of files to extract documentation from.
  * @param {string} fileName - Name the output file.
  */
-function createSpecification(swaggerDefinition, apis, fileName) {
+function createSpecification(
+  swaggerDefinition,
+  { apis, typePaths, types },
+  fileName
+) {
   // Options for the swagger docs
   const options = {
     // Import swaggerDefinitions
     swaggerDefinition,
     // Path to the API docs
     apis,
+    typePaths,
+    types,
   };
 
   // Initialize swagger-jsdoc -> returns validated JSON or YAML swagger spec
@@ -162,8 +168,30 @@ fs.readFile(program.definition, 'utf-8', (err, data) => {
     swaggerDefinition.apis &&
     swaggerDefinition.apis instanceof Array
   ) {
-    program.args = swaggerDefinition.apis;
+    program.args.apis = swaggerDefinition.apis;
     delete swaggerDefinition.apis;
+  }
+
+  // If there's no argument passed, but the user has defined Apis in
+  // the definition file, pass them them onwards.
+  if (
+    program.args.length === 0 &&
+    swaggerDefinition.typePaths &&
+    swaggerDefinition.typePaths instanceof Array
+  ) {
+    program.args.typePaths = swaggerDefinition.typePaths;
+    delete swaggerDefinition.typePaths;
+  }
+
+  // If there's no argument passed, but the user has defined Apis in
+  // the definition file, pass them them onwards.
+  if (
+    program.args.length === 0 &&
+    swaggerDefinition.types &&
+    swaggerDefinition.types instanceof Array
+  ) {
+    program.args.types = swaggerDefinition.types;
+    delete swaggerDefinition.types;
   }
 
   return createSpecification(swaggerDefinition, program.args, output);
